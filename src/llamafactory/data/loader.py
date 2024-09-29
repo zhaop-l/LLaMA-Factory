@@ -14,7 +14,7 @@
 
 import os
 import sys
-from typing import TYPE_CHECKING, Dict, Literal, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Literal, Optional, Sequence, Union
 
 import numpy as np
 from datasets import DatasetDict, load_dataset, load_from_disk
@@ -27,7 +27,6 @@ from .aligner import align_dataset
 from .data_utils import merge_dataset, split_dataset
 from .parser import get_dataset_list
 from .preprocess import get_preprocess_and_print_func
-from .template import get_template_and_fix_tokenizer
 
 
 if TYPE_CHECKING:
@@ -49,6 +48,9 @@ def _load_single_dataset(
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
 ) -> Union["Dataset", "IterableDataset"]:
+    r"""
+    Loads a single dataset and aligns it to the standard format.
+    """
     logger.info("Loading dataset {}...".format(dataset_attr))
     data_path, data_name, data_dir, data_files = None, None, None, None
     if dataset_attr.load_from in ["hf_hub", "ms_hub"]:
@@ -118,7 +120,7 @@ def _load_single_dataset(
 
     if dataset_attr.num_samples is not None and not data_args.streaming:
         target_num = dataset_attr.num_samples
-        indexes = np.random.permutation(len(dataset))[:target_num]
+        indexes = np.random.permutation(len(dataset))[:target_num]  # all samples should be included
         target_num -= len(indexes)
         if target_num > 0:
             expand_indexes = np.random.choice(len(dataset), target_num)
@@ -142,6 +144,9 @@ def _get_merged_dataset(
     training_args: "Seq2SeqTrainingArguments",
     stage: Literal["pt", "sft", "rm", "ppo", "kto"],
 ) -> Optional[Union["Dataset", "IterableDataset"]]:
+    r"""
+    Gets the merged datasets in the standard format.
+    """
     if dataset_names is None:
         return None
 
@@ -165,6 +170,9 @@ def _get_preprocessed_dataset(
     processor: Optional["ProcessorMixin"] = None,
     is_eval: bool = False,
 ) -> Optional[Union["Dataset", "IterableDataset"]]:
+    r"""
+    Preprocesses the dataset, including format checking and tokenization.
+    """
     if dataset is None:
         return None
 
@@ -202,17 +210,17 @@ def _get_preprocessed_dataset(
 
 
 def get_dataset(
+    template: "Template",
     model_args: "ModelArguments",
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
     stage: Literal["pt", "sft", "rm", "ppo", "kto"],
     tokenizer: "PreTrainedTokenizer",
     processor: Optional["ProcessorMixin"] = None,
-) -> Tuple["DatasetModule", "Template"]:
-    template = get_template_and_fix_tokenizer(tokenizer, data_args.template, data_args.tool_format)
-    if data_args.train_on_prompt and template.efficient_eos:
-        raise ValueError("Current template does not support `train_on_prompt`.")
-
+) -> "DatasetModule":
+    r"""
+    Gets the train dataset and optionally gets the evaluation dataset.
+    """
     # Load tokenized dataset
     if data_args.tokenized_path is not None:
         if has_tokenized_data(data_args.tokenized_path):
@@ -223,6 +231,7 @@ def get_dataset(
             dataset_module: Dict[str, "Dataset"] = {}
             if "train" in dataset_dict:
                 dataset_module["train_dataset"] = dataset_dict["train"]
+
             if "validation" in dataset_dict:
                 dataset_module["eval_dataset"] = dataset_dict["validation"]
 
@@ -276,7 +285,8 @@ def get_dataset(
         dataset_module = {}
         if "train" in dataset_dict:
             dataset_module["train_dataset"] = dataset_dict["train"]
+
         if "validation" in dataset_dict:
             dataset_module["eval_dataset"] = dataset_dict["validation"]
 
-        return dataset_module, template
+        return dataset_module

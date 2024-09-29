@@ -16,8 +16,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union
 
 from transformers.utils.versions import require_version
+from typing_extensions import override
 
-from ..extras.constants import IMAGE_PLACEHOLDER
 from ..extras.logging import get_logger
 from .data_utils import Role
 from .formatter import EmptyFormatter, FunctionFormatter, StringFormatter, ToolFormatter
@@ -27,6 +27,7 @@ from .mm_plugin import get_mm_plugin
 if TYPE_CHECKING:
     from transformers import PreTrainedTokenizer
 
+    from ..hparams import DataArguments
     from .formatter import SLOTS, Formatter
     from .mm_plugin import BasePlugin
 
@@ -48,6 +49,7 @@ class Template:
     stop_words: List[str]
     efficient_eos: bool
     replace_eos: bool
+    replace_jinja_template: bool
     mm_plugin: "BasePlugin"
 
     def encode_oneturn(
@@ -152,6 +154,7 @@ class Template:
 
 @dataclass
 class Llama2Template(Template):
+    @override
     def _encode(
         self,
         tokenizer: "PreTrainedTokenizer",
@@ -195,7 +198,7 @@ class Llama2Template(Template):
         return encoded_messages
 
 
-TEMPLATES: Dict[str, Template] = {}
+TEMPLATES: Dict[str, "Template"] = {}
 
 
 def _register_template(
@@ -212,7 +215,8 @@ def _register_template(
     stop_words: Sequence[str] = [],
     efficient_eos: bool = False,
     replace_eos: bool = False,
-    mm_plugin: "BasePlugin" = get_mm_plugin(name="base", image_token=IMAGE_PLACEHOLDER),
+    replace_jinja_template: bool = True,
+    mm_plugin: "BasePlugin" = get_mm_plugin(name="base"),
 ) -> None:
     r"""
     Registers a chat template.
@@ -261,6 +265,7 @@ def _register_template(
         stop_words=stop_words,
         efficient_eos=efficient_eos,
         replace_eos=replace_eos,
+        replace_jinja_template=replace_jinja_template,
         mm_plugin=mm_plugin,
     )
 
@@ -305,6 +310,9 @@ def _convert_slots_to_jinja(slots: "SLOTS", tokenizer: "PreTrainedTokenizer", pl
 
 
 def _get_jinja_template(template: "Template", tokenizer: "PreTrainedTokenizer") -> str:
+    r"""
+    Returns the jinja template.
+    """
     jinja_template = ""
 
     prefix = _convert_slots_to_jinja(template.format_prefix.apply(), tokenizer)
@@ -344,28 +352,31 @@ def _get_jinja_template(template: "Template", tokenizer: "PreTrainedTokenizer") 
     return jinja_template
 
 
-def get_template_and_fix_tokenizer(
-    tokenizer: "PreTrainedTokenizer",
-    name: Optional[str] = None,
-    tool_format: Optional[str] = None,
-) -> Template:
-    if name in ["llava", "paligemma", "qwen2_vl"]:
+def get_template_and_fix_tokenizer(tokenizer: "PreTrainedTokenizer", data_args: "DataArguments") -> "Template":
+    r"""
+    Gets chat template and fixes the tokenizer.
+    """
+    if data_args.template in ["llava", "paligemma", "qwen2_vl"]:
         require_version(
             "transformers>=4.45.0.dev0", "To fix: pip install git+https://github.com/huggingface/transformers.git"
         )
+        require_version("accelerate>=0.34.0", "To fix: pip install accelerate>=0.34.0")
 
-    if name is None:
+    if data_args.template is None:
         template = TEMPLATES["empty"]  # placeholder
     else:
-        template = TEMPLATES.get(name, None)
+        template = TEMPLATES.get(data_args.template, None)
         if template is None:
-            raise ValueError("Template {} does not exist.".format(name))
+            raise ValueError("Template {} does not exist.".format(data_args.template))
 
-    if tool_format is not None:
-        logger.info("Using tool format: {}.".format(tool_format))
+    if data_args.train_on_prompt and template.efficient_eos:
+        raise ValueError("Current template does not support `train_on_prompt`.")
+
+    if data_args.tool_format is not None:
+        logger.info("Using tool format: {}.".format(data_args.tool_format))
         eos_slots = [] if template.efficient_eos else [{"eos_token"}]
-        template.format_function = FunctionFormatter(slots=eos_slots, tool_format=tool_format)
-        template.format_tools = ToolFormatter(tool_format=tool_format)
+        template.format_function = FunctionFormatter(slots=eos_slots, tool_format=data_args.tool_format)
+        template.format_tools = ToolFormatter(tool_format=data_args.tool_format)
 
     stop_words = template.stop_words
     if template.replace_eos:
@@ -390,10 +401,11 @@ def get_template_and_fix_tokenizer(
         if num_added_tokens > 0:
             logger.warning("New tokens have been added, make sure `resize_vocab` is True.")
 
-    try:
-        tokenizer.chat_template = _get_jinja_template(template, tokenizer)
-    except ValueError:
-        logger.info("Cannot add this chat template to tokenizer.")
+    if template.replace_jinja_template:
+        try:
+            tokenizer.chat_template = _get_jinja_template(template, tokenizer)
+        except ValueError:
+            logger.info("Cannot add this chat template to tokenizer.")
 
     return template
 
@@ -561,6 +573,15 @@ _register_template(
 
 
 _register_template(
+    name="cpm3",
+    format_user=StringFormatter(slots=["<|im_start|>user\n{{content}}<|im_end|>\n<|im_start|>assistant\n"]),
+    format_system=StringFormatter(slots=["<|im_start|>system\n{{content}}<|im_end|>\n"]),
+    format_prefix=EmptyFormatter(slots=[{"bos_token"}]),
+    stop_words=["<|im_end|>"],
+)
+
+
+_register_template(
     name="dbrx",
     format_user=StringFormatter(slots=["<|im_start|>user\n{{content}}<|im_end|>\n<|im_start|>assistant\n"]),
     format_system=StringFormatter(slots=["<|im_start|>system\n{{content}}<|im_end|>\n"]),
@@ -647,6 +668,7 @@ _register_template(
     format_separator=EmptyFormatter(slots=["<end_of_turn>\n"]),
     format_prefix=EmptyFormatter(slots=[{"bos_token"}]),
     efficient_eos=True,
+    replace_jinja_template=False,
 )
 
 
@@ -723,6 +745,7 @@ _register_template(
     format_prefix=EmptyFormatter(slots=[{"bos_token"}]),
     stop_words=["<|eot_id|>"],
     replace_eos=True,
+    replace_jinja_template=False,
 )
 
 
@@ -814,6 +837,7 @@ _register_template(
     default_system="You are a helpful assistant.",
     stop_words=["<|im_end|>"],
     replace_eos=True,
+    replace_jinja_template=False,
 )
 
 
@@ -826,7 +850,8 @@ _register_template(
     default_system="You are a helpful assistant.",
     stop_words=["<|im_end|>"],
     replace_eos=True,
-    mm_plugin=get_mm_plugin(name="qwen2_vl", image_token="<|image_pad|>"),
+    replace_jinja_template=False,
+    mm_plugin=get_mm_plugin(name="qwen2_vl", image_token="<|image_pad|>", video_token="<|video_pad|>"),
 )
 
 
