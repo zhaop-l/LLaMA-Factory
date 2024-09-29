@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import comet_ml
+import os
+# Enable logging of model checkpoints
+os.environ["COMET_LOG_ASSETS"] = "True"
+
 from llamafactory.train.tuner import run_exp
 
 

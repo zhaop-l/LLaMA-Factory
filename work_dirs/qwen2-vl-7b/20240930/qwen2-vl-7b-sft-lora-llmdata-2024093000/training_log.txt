@@ -1,0 +1,122 @@
+W0930 00:17:28.700000 140591808808768 torch/distributed/run.py:757] 
+W0930 00:17:28.700000 140591808808768 torch/distributed/run.py:757] *****************************************
+W0930 00:17:28.700000 140591808808768 torch/distributed/run.py:757] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0930 00:17:28.700000 140591808808768 torch/distributed/run.py:757] *****************************************
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/train.py", line 15, in <module>
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/train.py", line 15, in <module>
+    import comet_ml    
+import comet_ml
+ModuleNotFoundErrorModuleNotFoundError: : No module named 'comet_ml'No module named 'comet_ml'
+
+E0930 00:17:33.711000 140591808808768 torch/distributed/elastic/multiprocessing/api.py:826] failed (exitcode: 1) local_rank: 0 (pid: 4037791) of binary: /data02/zhaop-l/anaconda3/envs/vlm/bin/python
+Traceback (most recent call last):
+  File "/data02/zhaop-l/anaconda3/envs/vlm/bin/torchrun", line 8, in <module>
+    sys.exit(main())
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 347, in wrapper
+    return f(*args, **kwargs)
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/run.py", line 879, in main
+    run(args)
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/run.py", line 870, in run
+    elastic_launch(
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 132, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 263, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+src/train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2024-09-30_00:17:33
+  host      : xa-D9-27-50
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 4037792)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2024-09-30_00:17:33
+  host      : xa-D9-27-50
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 4037791)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+W0930 00:17:58.921000 140701351974720 torch/distributed/run.py:757] 
+W0930 00:17:58.921000 140701351974720 torch/distributed/run.py:757] *****************************************
+W0930 00:17:58.921000 140701351974720 torch/distributed/run.py:757] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0930 00:17:58.921000 140701351974720 torch/distributed/run.py:757] *****************************************
+Traceback (most recent call last):
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/train.py", line 20, in <module>
+    from llamafactory.train.tuner import run_exp
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/llamafactory/train/tuner.py", line 25, in <module>
+    from ..hparams import get_infer_args, get_train_args
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/llamafactory/hparams/__init__.py", line 20, in <module>
+    from .parser import get_eval_args, get_infer_args, get_train_args
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/llamafactory/hparams/parser.py", line 45, in <module>
+    check_dependencies()
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/llamafactory/extras/misc.py", line 82, in check_dependencies
+    require_version("transformers>=4.41.2,<=4.45.0", "To fix: pip install transformers>=4.41.2,<=4.45.0")
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/transformers/utils/versions.py", line 111, in require_version
+    _compare_versions(op, got_ver, want_ver, requirement, pkg, hint)
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/transformers/utils/versions.py", line 44, in _compare_versions
+    raise ImportError(
+ImportError: transformers>=4.41.2,<=4.45.0 is required for a normal functioning of this module, but found transformers==4.45.1.
+To fix: pip install transformers>=4.41.2,<=4.45.0
+Traceback (most recent call last):
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/train.py", line 20, in <module>
+    from llamafactory.train.tuner import run_exp
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/llamafactory/train/tuner.py", line 25, in <module>
+    from ..hparams import get_infer_args, get_train_args
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/llamafactory/hparams/__init__.py", line 20, in <module>
+    from .parser import get_eval_args, get_infer_args, get_train_args
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/llamafactory/hparams/parser.py", line 45, in <module>
+    check_dependencies()
+  File "/data02/zhaop-l/code/LLaMA-Factory/src/llamafactory/extras/misc.py", line 82, in check_dependencies
+    require_version("transformers>=4.41.2,<=4.45.0", "To fix: pip install transformers>=4.41.2,<=4.45.0")
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/transformers/utils/versions.py", line 111, in require_version
+    _compare_versions(op, got_ver, want_ver, requirement, pkg, hint)
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/transformers/utils/versions.py", line 44, in _compare_versions
+    raise ImportError(
+ImportError: transformers>=4.41.2,<=4.45.0 is required for a normal functioning of this module, but found transformers==4.45.1.
+To fix: pip install transformers>=4.41.2,<=4.45.0
+E0930 00:18:08.934000 140701351974720 torch/distributed/elastic/multiprocessing/api.py:826] failed (exitcode: 1) local_rank: 0 (pid: 4038172) of binary: /data02/zhaop-l/anaconda3/envs/vlm/bin/python
+Traceback (most recent call last):
+  File "/data02/zhaop-l/anaconda3/envs/vlm/bin/torchrun", line 8, in <module>
+    sys.exit(main())
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 347, in wrapper
+    return f(*args, **kwargs)
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/run.py", line 879, in main
+    run(args)
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/run.py", line 870, in run
+    elastic_launch(
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 132, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/data02/zhaop-l/anaconda3/envs/vlm/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 263, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+src/train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2024-09-30_00:18:08
+  host      : xa-D9-27-50
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 4038173)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2024-09-30_00:18:08
+  host      : xa-D9-27-50
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 4038172)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
