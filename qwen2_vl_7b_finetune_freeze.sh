@@ -15,7 +15,7 @@ export COMET_API_KEY=MiIaJfB7mRa3IKnbDc0uzFAfB
 current_date=$(date +%Y%m%d)
 current_datetime=$(date +%Y%m%d%H)
 
-OUTPUT_DIR='./work_dirs/qwen2-vl-7b/'${current_date}'/qwen2-vl-7b-sft-full-llmdata-'${current_datetime}
+OUTPUT_DIR='./work_dirs/qwen2-vl-7b/'${current_date}'/qwen2-vl-7b-sft-freeze-llmdata-'${current_datetime}
 
 if [ ! -d "$OUTPUT_DIR" ]; then
   mkdir -p "$OUTPUT_DIR"
@@ -37,7 +37,9 @@ torchrun $DISTRIBUTED_ARGS src/train.py \
     --model_name_or_path /data03/public/mllm/Qwen/Qwen2-VL-7B-Instruct/ \
     --dataset processed_data_mixed_3000,processed_RAG \
     --template qwen2_vl \
-    --finetuning_type full \
+    --finetuning_type freeze \
+    --use_llama_pro \
+    --freeze_trainable_layers 7 \
     --output_dir $OUTPUT_DIR \
     --overwrite_cache \
     --overwrite_output_dir \
