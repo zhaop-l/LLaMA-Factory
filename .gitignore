@@ -168,3 +168,4 @@ saves/
 output/
 wandb/
 work_dirs/
+scripts_jupyter/
