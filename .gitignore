@@ -169,3 +169,6 @@ output/
 wandb/
 work_dirs/
 scripts_jupyter/
+data/
+qwen2_vl*
+data/*
