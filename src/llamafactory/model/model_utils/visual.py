@@ -137,7 +137,11 @@ def get_forbidden_modules(config: "PretrainedConfig", finetuning_args: "Finetuni
 
     elif model_type == "qwen2_vl":
         if finetuning_args.freeze_vision_tower:
-            forbidden_modules.add("visual")
+            forbidden_modules.add("visual.blocks")
+            forbidden_modules.add("visual.patch_embed")
+        
+        if finetuning_args.freeze_mm_proj:
+            forbidden_modules.add("visual.merger")
 
         if finetuning_args.train_mm_proj_only:
             raise ValueError("Qwen2-VL models do not support `train_mm_proj_only`.")

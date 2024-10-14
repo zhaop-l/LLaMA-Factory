@@ -334,6 +334,10 @@ class FinetuningArguments(FreezeArguments, LoraArguments, RLHFArguments, GaloreA
         default=True,
         metadata={"help": "Whether ot not to freeze vision tower in MLLM training."},
     )
+    freeze_mm_proj: bool = field(
+        default=True,
+        metadata={"help": "Whether ot not to freeze mm proj in MLLM training."},
+    )
     train_mm_proj_only: bool = field(
         default=False,
         metadata={"help": "Whether or not to train the multimodal projector for MLLM only."},
